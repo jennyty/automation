@@ -1,0 +1,35 @@
+body {
+  margin: 0px;
+}
+
+table {
+  border-radius: 10px;
+  border: 2px red solid;
+  background-color: lightblue;
+}
+
+table.device {
+  width:75%;
+  text-align:center;
+  background-color: white;
+}
+
+th {
+  background-color: steelblue;
+}
+
+th.tl {
+  border-top-left-radius: 8px;
+}
+
+th.tr {
+  border-top-right-radius: 8px;
+}
+
+.toggleOn {
+  background-color: lightgreen;
+}
+
+.toggleOff {
+  background-color: #dddddd;
+}
