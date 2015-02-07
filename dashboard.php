@@ -7,6 +7,8 @@
 require "db.inc";
 require "testrail.inc";
 require "authentication.inc";
+require "script.php";
+
 extract($_GET);
 define('ROOTPATH', dirname(__FILE__) . '/');
 #print "<h1>".ROOTPATH."</h1>";
@@ -20,9 +22,9 @@ authenticate($action);
 if (isset($_SESSION['user'])) {
 
 ### Display buttons at the top ###
-# print "<div style='width:100%;text-align:center;background-color:orange'><a href=$phpSelf?action=logout><button>Log Out</button></a> <a href=$phpSelf?action=updateproperties><button>Update Properties</button></a> <a href=$phpSelf?action=showdevices><button>Home</button></a></div>";
 print "<div style='width:100%;text-align:center;background-color:orange'>"
   . "<a href=$phpSelf?action=showdevices>Home</a>"
+  . " | <a href=$phpSelf?action=showscripts>Scripts</a>"
   . " | <a href=$phpSelf?action=updateproperties>Update Properties</a>"
   . " | <a href=$phpSelf?action=logout>Log Out</a>"
   . "</div>";
@@ -56,6 +58,7 @@ switch ($action) {
     processUpdateProp($_POST);
     break;
   default:
+    doScriptSwitch($_POST, $_GET);
     // Add Authentification
     break;
 }
@@ -112,7 +115,7 @@ function processUpdateProp($hash) {
    }
 
  } 
-} 
+}
 
 function showDevices() {
   global $phpSelf;
