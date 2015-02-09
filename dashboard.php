@@ -28,7 +28,8 @@ print "<div style='width:100%;text-align:center;background-color:orange'>"
   . " | <a href=$phpSelf?action=updateproperties>Update Properties</a>"
   . " | <a href=$phpSelf?action=logout>Log Out</a>"
   . "</div>";
-
+  print getErrorMessage();
+  clearErrorMessage();
   print "<h3>USER: {$_SESSION['user']['name']}</h3>";
 }
 
@@ -61,6 +62,18 @@ switch ($action) {
     doScriptSwitch($_POST, $_GET);
     // Add Authentification
     break;
+}
+
+function setErrorMessage($message) {
+  $_SESSION['errormessage'] = "<span style='background-color:red'> " . $message . " </span><br />";
+}
+
+function getErrorMessage() {
+  return $_SESSION['errormessage'];
+}
+
+function clearErrorMessage() {
+  $_SESSION['errormessage']="";
 }
 
 function gotoHome() {
