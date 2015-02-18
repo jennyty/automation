@@ -7,7 +7,8 @@
 require "db.inc";
 require "testrail.inc";
 require "authentication.inc";
-require "script.php";
+
+$scriptPath = "/mnt/hgfs/Shared/deploy/backup_2015_02_07_090226/Agent/";
 
 extract($_GET);
 define('ROOTPATH', dirname(__FILE__) . '/');
@@ -22,15 +23,14 @@ authenticate($action);
 if (isset($_SESSION['user'])) {
 
 ### Display buttons at the top ###
+# print "<div style='width:100%;text-align:center;background-color:orange'><a href=$phpSelf?action=logout><button>Log Out</button></a> <a href=$phpSelf?action=updateproperties><button>Update Properties</button></a> <a href=$phpSelf?action=showdevices><button>Home</button></a></div>";
 print "<div style='width:100%;text-align:center;background-color:orange'>"
   . "<a href=$phpSelf?action=showdevices>Home</a>"
   . " | <a href=$phpSelf?action=showscripts>Scripts</a>"
-  . " | <a href=$phpSelf?action=graph>Graph</a>"
   . " | <a href=$phpSelf?action=updateproperties>Update Properties</a>"
   . " | <a href=$phpSelf?action=logout>Log Out</a>"
   . "</div>";
-  print getErrorMessage();
-  clearErrorMessage();
+
   print "<h3>USER: {$_SESSION['user']['name']}</h3>";
 }
 
@@ -44,14 +44,17 @@ switch ($action) {
   case 'editdevice':
     editDevice();
     break;
+  case 'showscripts':
+    showScripts();
+    break;
+  case 'processscript':
+    processScript($_POST);
+    break;
   case 'checkout':
     processCheckOut($_GET);
     break;
   case 'checkin':
     processCheckIn($_GET);
-    break;
-  case 'graph':
-    doGraph($_GET);
     break;
   case 'processdevice':
     processDevice($_POST);
@@ -63,21 +66,8 @@ switch ($action) {
     processUpdateProp($_POST);
     break;
   default:
-    doScriptSwitch($_POST, $_GET);
     // Add Authentification
     break;
-}
-
-function setErrorMessage($message) {
-  $_SESSION['errormessage'] = "<span style='background-color:red'> " . $message . " </span><br />";
-}
-
-function getErrorMessage() {
-  return $_SESSION['errormessage'];
-}
-
-function clearErrorMessage() {
-  $_SESSION['errormessage']="";
 }
 
 function gotoHome() {
@@ -132,6 +122,24 @@ function processUpdateProp($hash) {
    }
 
  } 
+}
+
+function showScripts() {
+  print "<h1>Scripts Home</h1>";
+  print "<form  method='POST' action='$phpSelf?action=processscript'><table>"
+    . "<tr><td>Device 1:</td><td><input type='text' name='device1'></td></tr>"
+    . "<tr><td>Device 2:</td><td><input type='text' name='device2'></td></tr>"
+    . "<tr><td colspan='2'><input type='submit'></td></tr>"
+    . "</table></form>";
+}
+
+function processScript($hash) {
+  global $scriptPath;
+  print "<h1>{$hash['device1']}</h1>";
+  
+  $command="perl -I $scriptPath $scriptPath/testcase.pl -device {$hash['device1']} -testcase 1 &";
+  print $command;
+  shell_exec($command);
 }
 
 function showDevices() {
@@ -252,11 +260,6 @@ function processCheckIn($hash) {
 
 function changeDeviceLocation($device_id, $device_location) {
   doQuery(sprintf("UPDATE device SET device_location=%s WHERE device_id='%s'", $device_location, $device_id));
-}
-
-function doGraph($get) {
-  $testRunId = $get["testRunId"];
-  print "<iframe src='graph.php?testRunId=$testRunId' width='95%' height='100%' seamless frameborder='0'></iframe><br /><br />";
 }
 
 ?>

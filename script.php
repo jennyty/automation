@@ -1,6 +1,6 @@
 <?php
 
-$scriptPath = "/mnt/hgfs/Shared/deploy/backup_2015_02_07_090226/Agent/";
+$scriptPath = "/opt/samsung/client";
 
 function doScriptSwitch($post, $get) {
   switch($get['action']) {
@@ -17,6 +17,7 @@ function doScriptSwitch($post, $get) {
 }
 
 function showScripts() {
+  global $phpSelf;
   print "<h1>Script Runner</h1>";
   print "<form  method='POST' action='$phpSelf?action=processscript'><table style='padding:15px'>"
     . "<tr><td>Test Case: </td><td><select name='testcase'>"
@@ -70,12 +71,13 @@ function processScript($hash) {
 }
 
 function getProcesses() {
+  global $phpSelf;
   $return = "";
   $result = shell_exec("pgrep -f -a testcase");
   $processes = split("\n", $result);
   foreach ($processes as $process) {
     if (preg_match("/testcase\.pl.* (\d+\.\d+\.\d+\.\d+)/", $process, $match)) {
-      $return .= "Stop Process: <a href='$phpself?action=processkillscript'>" . $match[1] . "</a><br />";
+      $return .= "Stop Process: <a href='$phpSelf?action=processkillscript'>" . $match[1] . "</a><br />";
     }
   }
   return $return; 
@@ -90,6 +92,7 @@ function isDeviceAvailable($device) {
 }
 
 function goScriptHome() {
+  global $phpSelf;
   header("Location: $phpSelf?action=showscripts");
   exit;
 }
