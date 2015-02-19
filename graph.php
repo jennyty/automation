@@ -27,6 +27,9 @@ function drawVisualization() {
   data2.addColumn('number', 'Dalvik Heap Alloc');
 
 <?php
+
+require "db.inc";
+
 $testRunId=$_GET['testRunId'];
 if (isset($testRunId)) {
   $result = doQuery("SELECT * FROM memory WHERE testrun_id='$testRunId'");
@@ -40,7 +43,8 @@ if (isset($testRunId)) {
 }
 // TODO: Make existing method more configurable and use that  
 function doQuery($query) {
-  $mysqli = new mysqli('localhost', 'automation', 'automation', 'dashboard');
+  global $dbHost, $dbUser, $dbPass;
+  $mysqli = new mysqli($dbHost, $dbUser, $dbPass, 'dashboard');
 
   if ($mysqli->connect_errno) {
     die ("Cannot Connect \n");

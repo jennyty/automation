@@ -25,8 +25,9 @@ if (isset($_SESSION['user'])) {
 print "<div style='width:100%;text-align:center;background-color:orange'>"
   . "<a href=$phpSelf?action=showdevices>Home</a>"
   . " | <a href=$phpSelf?action=showscripts>Scripts</a>"
-  . " | <a href=$phpSelf?action=graph>Graph</a>"
+  . " | <a href=$phpSelf?action=graph&testRunId=0>Graph</a>"
   . " | <a href=$phpSelf?action=updateproperties>Update Properties</a>"
+  . " | <a href=$phpSelf?action=help>Help</a>"
   . " | <a href=$phpSelf?action=logout>Log Out</a>"
   . "</div>";
   print getErrorMessage();
@@ -61,6 +62,9 @@ switch ($action) {
     break;
   case 'processupdateprop':
     processUpdateProp($_POST);
+    break;
+  case 'help':
+    doHelp();
     break;
   default:
     doScriptSwitch($_POST, $_GET);
@@ -257,6 +261,14 @@ function changeDeviceLocation($device_id, $device_location) {
 function doGraph($get) {
   $testRunId = $get["testRunId"];
   print "<iframe src='graph.php?testRunId=$testRunId' width='95%' height='100%' seamless frameborder='0'></iframe><br /><br />";
+}
+
+function doHelp() {
+  print "<div style='text-align:left'><b>Loading Agent on the device</b><br /><hr>"
+    . "<ul><li>Download the jar to the local system <a href='../uploads/uiautomator.jar'>Agent Download</a></li>"
+    . "<li>Copy the jar to the device: <span style='color:red'>adb push bin/uiautomator.jar /data/local/tmp/</span></li>"
+    . "<li>Run the script on the device: <span style='color:red'>adb shell uiautomator runtest uiautomator.jar -c uiautomator.Agent --nohup</span></li>"
+    . "<li>Confirm you can connect to the device</li></ul></div>";
 }
 
 ?>
