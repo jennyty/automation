@@ -23,11 +23,12 @@ if (isset($_SESSION['user'])) {
 
 ### Display buttons at the top ###
 print "<div style='width:100%;text-align:center;background-color:orange'>"
-  . "<a href=$phpSelf?action=showdevices>Home</a>"
+  . "<a href=$phpSelf?action=showdevices>Devices</a>"
   . " | <a href=$phpSelf?action=showscripts>Scripts</a>"
   . " | <a href=$phpSelf?action=graph&testRunId=0>Graph</a>"
   . " | <a href=$phpSelf?action=updateproperties>Update Properties</a>"
   . " | <a href=$phpSelf?action=help>Help</a>"
+  . " | <a href=$phpSelf?action=showaccounts>Test Accounts</a>"
   . " | <a href=$phpSelf?action=logout>Log Out</a>"
   . "</div>";
   print getErrorMessage();
@@ -39,8 +40,14 @@ switch ($action) {
   case 'showdevices':
     showDevices();
     break;
+  case 'showaccounts':
+    showAccounts();
+    break;
   case 'adddevice':
     addDevice();
+    break;
+  case 'addaccount':
+    addAccount();
     break;
   case 'editdevice':
     editDevice();
@@ -51,11 +58,20 @@ switch ($action) {
   case 'checkin':
     processCheckIn($_GET);
     break;
+  case 'checkoutaccount':
+    processCheckOutAccount($_GET);
+    break;
+  case 'checkinaccount':
+    processCheckInAccount($_GET);
+    break;
   case 'graph':
     doGraph($_GET);
     break;
   case 'processdevice':
     processDevice($_POST);
+    break;
+  case 'processaccount':
+    processAccount($_POST);
     break;
   case 'updateproperties':
     updateProperties();
@@ -86,6 +102,11 @@ function clearErrorMessage() {
 
 function gotoHome() {
   header("Location: $phpSelf?action=showdevices");
+  exit;
+}
+
+function gotoAccountPage() {
+  header("Location: $phpSelf?action=showaccounts");
   exit;
 }
 
@@ -174,6 +195,39 @@ function showDevices() {
 //  print createUserSelect();
 }
 
+function showAccounts() {
+  global $phpSelf;
+  $result = doQuery("SELECT * FROM account LEFT JOIN accounttype USING (type_id)");
+  $html = "<center><table cellspacing='1' class='account'>"
+    . sprintf("<tr><th class='tl'>Account</th><th>Type</th><th>Password</th><th>Location</th><th class='tr'>Action</th></tr>");
+  $action = "";
+  $toggle = 0;
+  while ($row = mysqli_fetch_array($result)) {
+    switch ($row['account_location']) {
+      case '':
+        $action = "<a href='$phpSelf?action=checkoutaccount&account_id={$row['account_id']}'>Check Out</a>";
+        break;
+      case $_SESSION['user']['id']:
+        $action = "<a href='$phpSelf?action=checkinaccount&account_id={$row['account_id']}'>Check In</a>";
+        break;
+      default:
+        $action = "";
+        break;
+    }
+    $class = "toggle" . ($toggle?"On":"Off");
+    $toggle = !$toggle;
+    $html .= sprintf("<tr class='$class'>");
+    $columns = Array($row['account_name'], $row['type_name'], $row['password'], getUserNameById($row['account_location']), $action);
+    foreach($columns as $column) {
+      $html .= sprintf("<td>%s</td>", $column);
+    }
+  }
+  $html .= "</table></center>";
+  $html .= "<a href='$phpSelf?action=addaccount'>Add Account</a>";
+  print $html;
+}
+
+
 function addDevice() {
   $html = "<center><div><form method='POST' action='$phpSelf?action=processdevice'>"
     . "<table style='padding:10px'>"
@@ -185,9 +239,26 @@ function addDevice() {
   print $html;
 }
 
+function addAccount() {
+  $html = "<center><div><form method='POST' action='$phpSelf?action=processaccount'>"
+    . "<table style='padding:10px'>"
+    . "<tr><td>Account Name</td><td><input type='text' name='account_name'></td></tr>"
+    . "<tr><td>Account Password</td><td><input type='text' name='account_password'></td></tr>"
+    . "<tr><td>Account Type</td><td>" . createAccountTypeSelect() . "</td>"
+    . "<tr><td colspan='2'><input type='submit' value='Add Account'/></td></tr>"
+    . "</form></div></center>";
+
+  print $html;
+}
+
 function processDevice($hash) {
   doQuery(sprintf("INSERT INTO device (device_name, carrier_id) VALUES ('%s', '%s')", $hash['device_name'], $hash['carrier_id']));
   gotoHome();
+}
+
+function processAccount($hash) {
+  doQuery(sprintf("INSERT INTO account (account_name, password, type_id) VALUES ('%s', '%s', '%s')", $hash['account_name'], $hash['account_password'], $hash['type_id']));
+  gotoAccountPage();
 }
 
 function editDevice() {
@@ -243,6 +314,10 @@ function createSelect($name, $query) {
   return $html;
 }
 
+function createAccountTypeSelect() {
+  return createSelect("type_id", "SELECT type_id, type_name FROM accounttype ORDER BY type_name");
+}
+
 function processCheckOut($hash) {
   // TODO: Check if Available
   changeDeviceLocation($hash['device_id'], $_SESSION['user']['id']);
@@ -256,6 +331,21 @@ function processCheckIn($hash) {
 
 function changeDeviceLocation($device_id, $device_location) {
   doQuery(sprintf("UPDATE device SET device_location=%s WHERE device_id='%s'", $device_location, $device_id));
+}
+
+function processCheckOutAccount($hash) {
+  // TODO: Check if Available
+  changeAccountLocation($hash['account_id'], $_SESSION['user']['id']);
+  gotoAccountPage();
+}
+
+function processCheckInAccount($hash) {
+  changeAccountLocation($hash['account_id'], 'NULL');
+  gotoAccountPage();
+}
+
+function changeAccountLocation($account_id, $account_location) {
+  doQuery(sprintf("UPDATE account SET account_location=%s WHERE account_id='%s'", $account_location, $account_id));
 }
 
 function doGraph($get) {
