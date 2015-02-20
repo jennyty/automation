@@ -315,7 +315,7 @@ function createSelect($name, $query) {
 }
 
 function createAccountTypeSelect() {
-  return createSelect("type_name", "SELECT type_id, type_name FROM accounttype ORDER BY type_name");
+  return createSelect("type_id", "SELECT type_id, type_name FROM accounttype ORDER BY type_name");
 }
 
 function processCheckOut($hash) {
