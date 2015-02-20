@@ -18,13 +18,20 @@ function doScriptSwitch($post, $get) {
 
 function showScripts() {
   global $phpSelf;
-  print "<h1>Script Runner</h1>";
+  print "<h1>Test Case Runner</h1>";
   print "<form  method='POST' action='$phpSelf?action=processscript'><table style='padding:15px'>"
     . "<tr><td>Test Case: </td><td><select name='testcase'>"
 // TODO: This list should be dynamically generated
     . "<option value='1'>Milk Video: Open/Close</option>"
     . "<option value='2'>Milk Video: Launch</option>"
-    . "<option value='3'>Milk Video: Following</option>"
+    . "<option value='3'>Milk Video: Power</option>"
+    . "<option value='4'>Milk Video: MemoryTrack</option>"
+    . "<option value='5'>Milk Video: Following (2 devices)</option>"
+    . "<option disabled>------------</option>"
+    . "<option value='6'>Milk Music: Open/Close</option>"
+    . "<option value='7'>Milk Music: Launch</option>"
+    . "<option value='8'>Milk Music: Power</option>"
+    . "<option value='9'>Milk Music: MemoryTrack</option>"
     . "</select></td></tr>"
     //. "<tr><td>Device 1:</td><td><input type='text' name='device1'></td></tr>"
     //. "<tr><td>Device 2:</td><td><input type='text' name='device2'></td></tr>"
@@ -32,8 +39,8 @@ function showScripts() {
     . "<tr><td>Device 2:</td><td><input type='text' name='devices[]' size='30'></td></tr>"
     . "<tr><td colspan='2' style='text-align:center'><input type='submit'></td></tr>"
     . "</table></form>";
-
   print getProcesses();
+  print showResults();
 }
 
 function processKillScript($hash) {
@@ -64,7 +71,8 @@ function processScript($hash) {
     goScriptHome(); 
   }
   
-  $command="perl -I $scriptPath $scriptPath/testcase.pl $deviceString -testcase {$hash['testcase']} > /dev/null &";
+  $userId = getUserId();
+  $command="perl -I $scriptPath $scriptPath/testcase.pl $deviceString -testcase {$hash['testcase']} -userId $userId > /dev/null &";
   print $command;
   shell_exec($command);
   goScriptHome();
@@ -75,12 +83,31 @@ function getProcesses() {
   $return = "";
   $result = shell_exec("pgrep -f -a testcase");
   $processes = split("\n", $result);
+  $userId = getUserId();
   foreach ($processes as $process) {
-    if (preg_match("/testcase\.pl.* (\d+\.\d+\.\d+\.\d+)/", $process, $match)) {
+    if (preg_match("/testcase\.pl.* (\d+\.\d+\.\d+\.\d+).*-userId $userId$/", $process, $match)) {
       $return .= "Stop Process: <a href='$phpSelf?action=processkillscript'>" . $match[1] . "</a><br />";
     }
   }
   return $return; 
+}
+
+function showResults() {
+  $userId = getUserId();
+  $base = "/tmp/AutomatedScriptLogs";
+  $command = sprintf("ls %s/%06s", $base, $userId);
+  //print "$command<br />";
+  $logs = explode("\n",shell_exec($command));
+  rsort($logs);
+  $table = "<br /><br /><table width='25%' style='text-align:center'>";
+  $table .= "<th>Test Case Run Id</th><th>Log</th><th>Display</th>";
+  foreach ($logs as $log) {
+    if (preg_match('/_(\d+)\.log/', $log, $matches)) {
+      # TODO: Only add graph link if exists in db
+      $table .= "<tr><td>$matches[1]</td><td><a href='$base/$log'>Download</a></td><td><a href='$phpSelf?action=graph&testRunId=$matches[1]'>Graph</a></td></tr>";
+    };
+  }
+  print $table;
 }
 
 function isDeviceAvailable($device) {
@@ -95,6 +122,20 @@ function goScriptHome() {
   global $phpSelf;
   header("Location: $phpSelf?action=showscripts");
   exit;
+}
+
+function getUserId() {
+  # TODO: Handle guest user
+  $uid = $_SESSION['user']['id'];
+  if (!isset($uid)) {
+    $uid = 0;
+  }
+  return $uid;
+}
+
+function getTestCaseRunId() {
+  # TODO: This should be replaced by the Test Rail Test Case Run Id value when the proper criteria is determined
+  return time();
 }
 
 ?>
