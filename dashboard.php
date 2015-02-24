@@ -161,9 +161,11 @@ function processUpdateProp($hash) {
 
 function showDevices() {
   global $phpSelf;
-  $result = doQuery("SELECT * FROM device LEFT JOIN carrier USING (carrier_id)");
+  $query = "SELECT * FROM device LEFT JOIN carrier USING (carrier_id)"
+    . " LEFT JOIN model USING (model_id)";
+  $result = doQuery($query);
   $html = "<center><table cellspacing='1' class='device'>"
-    . sprintf("<tr><th class='tl'>Name</th><th>Carrier</th><th>Location</th><th class='tr'>Action</th></tr>");
+    . sprintf("<tr><th class='tl'>Name</th><th>Serial Number</th><th>Model</th><th>Carrier</th><th>Location</th><th class='tr'>Action</th></tr>");
   $action = "";
   $toggle = 0;
   while ($row = mysqli_fetch_array($result)) {
@@ -181,7 +183,7 @@ function showDevices() {
     $class = "toggle" . ($toggle?"On":"Off");
     $toggle = !$toggle;
     $html .= sprintf("<tr class='$class'>");
-    $columns = Array($row['device_name'], $row['carrier_name'], getUserNameById($row['device_location']), $action);
+    $columns = Array($row['device_name'], $row['device_serial_number'], $row['model_name'], $row['carrier_name'], getUserNameById($row['device_location']), $action);
     foreach($columns as $column) {
       $html .= sprintf("<td>%s</td>", $column);
     }
