@@ -133,30 +133,66 @@ function updateProperties() {
 
 }
 
+function getPropValue($deviceProperties, $value) {
+  if(preg_match("/\[$value\]: \[(.*)\]/", $deviceProperties, $matches)) {
+    return $matches[1];
+  }
+}
+
 function processUpdateProp($hash) {
   global $phpSelf, $table1;
- if (!$hash['deviceName'] || !$hash['deviceProperties'])
- {
-   gotoUpdateProperties();
- } else
- {
 
-  $searchName=$hash['deviceName'];
-#  printf("SELECT * FROM $table1 WHERE device_name LIKE '$searchNameSELECT * FROM $table1 WHERE device_name LIKE '$searchName''");
-  $result=doQuery("SELECT * FROM $table1 WHERE device_name LIKE '$searchName'");
+  $deviceSerialNumber = getPropValue($hash['deviceProperties'], 'ro.serialno');
+  $deviceModelId = getModelId(getPropValue($hash['deviceProperties'], 'ro.product.model'));
+  $deviceCarrierId = getCarrierId(getPropValue($hash['deviceProperties'], 'ro.com.google.clientidbase.am'));
 
-   if ($row = mysqli_fetch_assoc($result)) {
-   #printf("UPDATE $table1 SET Properties='%s' WHERE device_name='%s'", $hash['deviceProperties'],$hash['deviceName']) . '<br>';
-    doQuery(sprintf("UPDATE $table1 SET Properties='%s' WHERE device_name='%s'",$hash['deviceProperties'],$hash['deviceName']));
-    print "<br><br>Information updated in the database successfullly.";
-  
- } else if (!$row = mysqli_fetch_assoc($result)) {
-   #printf("INSERT INTO device (device_name, Properties) VALUES ('%s', '%s')", $hash['deviceName'], $hash['deviceProperties']);
-    doQuery(sprintf("INSERT INTO device (device_name, Properties) VALUES ('%s', '%s')", $hash['deviceName'], $hash['deviceProperties']));
-    print "<br><br>Information inserted into the database successfullly.";
-   }
+  if (!$hash['deviceName'] || !$hash['deviceProperties'] || !$deviceSerialNumber) {
+    gotoUpdateProperties();
+  } else {
+    $searchName=$hash['deviceName'];
+#    printf("SELECT * FROM $table1 WHERE device_name LIKE '$searchNameSELECT * FROM $table1 WHERE device_name LIKE '$searchName''");
+    $result=doQuery("SELECT * FROM $table1 WHERE device_serial_number = '$deviceSerialNumber'");
+   
+    if ($row = mysqli_fetch_assoc($result)) {
+      #printf("UPDATE $table1 SET Properties='%s' WHERE device_name='%s'", $hash['deviceProperties'],$hash['deviceName']) . '<br>';
+      doQuery(sprintf("UPDATE $table1 SET Properties='%s', device_name='%s' WHERE device_serial_number='%s'", $hash['deviceProperties'], $hash['deviceName'], $deviceSerialNumber));
+      print "<br><br>Information updated in the database successfully.";
+    } else if (!$row = mysqli_fetch_assoc($result)) {
+      #printf("INSERT INTO device (device_name, Properties) VALUES ('%s', '%s')", $hash['deviceName'], $hash['deviceProperties']);
+      doQuery(sprintf("INSERT INTO device (device_name, Properties, device_serial_number) VALUES ('%s', '%s', '%s')", $hash['deviceName'], $hash['deviceProperties'], $deviceSerialNumber));
+      print "<br><br>Information inserted into the database successfully.";
+    }
+    # TODO: Maybe not have this separate?
+    if (isset($deviceModelId) && isset($deviceCarrierId)) {
+      doQuery(sprintf("UPDATE $table1 SET model_id='%s', carrier_id='%s' WHERE device_serial_number='%s'", $deviceModelId, $deviceCarrierId, $deviceSerialNumber));
+    }
+  } 
+}
 
- } 
+function getModelId($modelName) {
+  if (isset($modelName)) {
+    $query = "SELECT * FROM model WHERE model_name='$modelName'";
+    $result = doQuery($query);
+
+    if ($row = mysqli_fetch_assoc($result)) {
+      return $row['model_id'];
+    }
+
+    return doQuery(sprintf("INSERT INTO model (model_name) VALUES ('%s')", $modelName));
+  }
+}
+
+function getCarrierId($carrierName) {
+  if (isset($carrierName)) {
+    $query = "SELECT * FROM carrier WHERE carrier_name='$carrierName'";
+    $result = doQuery($query);
+
+    if ($row = mysqli_fetch_assoc($result)) {
+      return $row['carrier_id'];
+    }
+
+    return doQuery(sprintf("INSERT INTO carrier (carrier_name) VALUES ('%s')", $carrierName));
+  }
 }
 
 function showDevices() {
