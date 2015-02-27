@@ -388,15 +388,11 @@ function changeAccountLocation($account_id, $account_location) {
 
 function doGraph($get) {
   $testRunId = $get["testRunId"];
-  print "<iframe src='graph.php?testRunId=$testRunId' width='95%' height='100%' seamless frameborder='0'></iframe><br /><br />";
+  print "<iframe src='graph.php?testRunId=$testRunId' width='95%' height='100%' seamless frameborder='0'></iframe><br />";
 }
 
 function doHelp() {
-  print "<div style='text-align:left'><b>Loading Agent on the device</b><br /><hr>"
-    . "<ul><li>Download the jar to the local system <a href='../uploads/uiautomator.jar'>Agent Download</a></li>"
-    . "<li>Copy the jar to the device: <span style='color:red'>adb push bin/uiautomator.jar /data/local/tmp/</span></li>"
-    . "<li>Run the script on the device: <span style='color:red'>adb shell uiautomator runtest uiautomator.jar -c uiautomator.Agent --nohup</span></li>"
-    . "<li>Confirm you can connect to the device</li></ul></div>";
+  print "<iframe src='help.php' width='95%' height='100%' seamless frameborder='0'></iframe><br />";
 }
 
 ?>

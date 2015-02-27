@@ -94,8 +94,9 @@ function getProcesses() {
 
 function showResults() {
   $userId = getUserId();
-  $base = "/tmp/AutomatedScriptLogs";
-  $command = sprintf("ls %s/%06s", $base, $userId);
+  $base = "../downloads";
+  $folder = sprintf("../downloads/%06s",  $userId);
+  $command = "ls $folder";
   //print "$command<br />";
   $logs = explode("\n",shell_exec($command));
   rsort($logs);
@@ -104,7 +105,7 @@ function showResults() {
   foreach ($logs as $log) {
     if (preg_match('/_(\d+)\.log/', $log, $matches)) {
       # TODO: Only add graph link if exists in db
-      $table .= "<tr><td>$matches[1]</td><td><a href='$base/$log'>Download</a></td><td><a href='$phpSelf?action=graph&testRunId=$matches[1]'>Graph</a></td></tr>";
+      $table .= "<tr><td>$matches[1]</td><td><a href='$folder/$log'>Download</a></td><td><a href='$phpSelf?action=graph&testRunId=$matches[1]'>Graph</a></td></tr>";
     };
   }
   print $table;
