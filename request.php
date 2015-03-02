@@ -5,12 +5,11 @@
   require "/sandbox/packages/testrail-api-master/php/testrail.php";
   require_once "RestServer.php";
 
-  $rest = new RestServer(Result);
+  $rest = new RestServer('Result');
   $rest->handle();
 
 class Result
 {
-  #Return all results for a test (identified by test IDs)
   function addresult($testid,$status_id,$comment) {
     global $host, $user, $password;
     try {
@@ -36,7 +35,6 @@ class Result
     return $jsonStr;
   }
 
-  #Returns all results for a test (identified by the test run and test case IDs). 
   function addresultforcase($runid,$testid,$status_id,$comment) {
     global $host, $user, $password;
     try {
