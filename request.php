@@ -147,6 +147,14 @@ class Result
   }
 
 
+  function insertMeasurementValue($run,$date,$value,$type) {
+   $result=mysql_query("INSERT INTO measurement (testrun_id, time, value, datatype_id) values ($run, $date, $value,$type)");
+   print "Insert completed.";
+   mysql_close(($conn));
+  }
+
+
+
 }
 
 ?>
