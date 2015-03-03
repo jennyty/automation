@@ -1,4 +1,4 @@
-<html><head><title>Device Inventory</title>
+<html><head><title>Dashboard</title>
 <link rel='stylesheet' type='text/css' href='style.css' />
 
 </head><body><center>
@@ -201,7 +201,7 @@ function showDevices() {
     . " LEFT JOIN model USING (model_id)";
   $result = doQuery($query);
   $html = "<center><table cellspacing='1' class='device'>"
-    . sprintf("<tr><th class='tl'>Name</th><th>Serial Number</th><th>Model</th><th>Carrier</th><th>Location</th><th class='tr'>Action</th></tr>");
+    . sprintf("<tr><th class='tl'>Name</th><th>Serial Number</th><th>Model</th><th>Desc</th><th>Carrier</th><th>Location</th><th class='tr'>Action</th></tr>");
   $action = "";
   $toggle = 0;
   while ($row = mysqli_fetch_array($result)) {
@@ -219,13 +219,13 @@ function showDevices() {
     $class = "toggle" . ($toggle?"On":"Off");
     $toggle = !$toggle;
     $html .= sprintf("<tr class='$class'>");
-    $columns = Array($row['device_name'], $row['device_serial_number'], $row['model_name'], $row['carrier_name'], getUserNameById($row['device_location']), $action);
+    $columns = Array($row['device_name'], $row['device_serial_number'], $row['model_name'], $row['model_desc'], $row['carrier_name'], getUserNameById($row['device_location']), $action);
     foreach($columns as $column) {
       $html .= sprintf("<td>%s</td>", $column);
     }
   }
   $html .= "</table></center>";
-  $html .= "<a href='$phpSelf?action=adddevice'>Add Device</a>";
+  #$html .= "<a href='$phpSelf?action=adddevice'>Add Device</a>";
   print $html;
   //print_r(doCredentials('automation@automation.com', 'automation'));
 //  print_r(getUsers());

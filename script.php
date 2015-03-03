@@ -45,7 +45,8 @@ function showScripts() {
 
 function processKillScript($hash) {
   // TODO: Add user information and process
-  shell_exec("pkill -f testcase");
+  $ip = $hash['ip'];
+  shell_exec("pkill -f testcase.*$ip");
   print_r($hash);
   goScriptHome();
 }
@@ -86,7 +87,8 @@ function getProcesses() {
   $userId = getUserId();
   foreach ($processes as $process) {
     if (preg_match("/testcase\.pl.* (\d+\.\d+\.\d+\.\d+).*-userId $userId$/", $process, $match)) {
-      $return .= "Stop Process: <a href='$phpSelf?action=processkillscript'>" . $match[1] . "</a><br />";
+      $ip = $match[1];
+      $return .= "Stop Process: <a href='$phpSelf?action=processkillscript&ip=$ip'>$ip</a><br />";
     }
   }
   return $return; 
@@ -105,7 +107,7 @@ function showResults() {
   foreach ($logs as $log) {
     if (preg_match('/_(\d+)\.log/', $log, $matches)) {
       # TODO: Only add graph link if exists in db
-      $table .= "<tr><td>$matches[1]</td><td><a href='$folder/$log'>Download</a></td><td><a href='$phpSelf?action=graph&testRunId=$matches[1]'>Graph</a></td></tr>";
+      $table .= "<tr><td>$matches[1]</td><td><a download href='$folder/$log'>Download</a></td><td><a href='$phpSelf?action=graph&testRunId=$matches[1]'>Graph</a></td></tr>";
     };
   }
   print $table;
