@@ -320,13 +320,16 @@ function createUserSelect() {
 }
 
 function createCarrierSelect() {
-  return createSelect("deviceinventory", "carrier_id", "SELECT carrier_id, carrier_name FROM carrier ORDER BY carrier_name");
+  return createSelect("deviceinventory", "carrier_id", "SELECT carrier_id, carrier_name FROM carrier ORDER BY carrier_name", false);
 }
 
-function createSelect($schema, $name, $query) {
+function createSelect($schema, $name, $query, $blankFirst) {
   $result = doQuery($schema, $query);
 
   $html = "<select name='$name'>";
+  if ($blankFirst) {
+    $html .= "<option></option>";
+  }
   while ($row = mysqli_fetch_array($result)) {
     $html .= sprintf("<option value='%s'>%s</option>", $row[0], $row[1]);
   }
