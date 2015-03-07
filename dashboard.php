@@ -4,10 +4,11 @@
 </head><body><center>
 
 <?php
-require "db.inc";
+require "database.php";
 require "testrail.inc";
 require "authentication.inc";
 require "script.php";
+require "timesheet.php";
 
 extract($_GET);
 define('ROOTPATH', dirname(__FILE__) . '/');
@@ -27,8 +28,9 @@ print "<div style='width:100%;text-align:center;background-color:orange'>"
   . " | <a href=$phpSelf?action=showscripts>Scripts</a>"
   . " | <a href=$phpSelf?action=graph&testRunId=0>Graph</a>"
   . " | <a href=$phpSelf?action=updateproperties>Update Properties</a>"
-  . " | <a href=$phpSelf?action=help>Help</a>"
   . " | <a href=$phpSelf?action=showaccounts>Test Accounts</a>"
+  . " | <a href=$phpSelf?action=showtimesheet>Time Sheet</a>"
+  . " | <a href=$phpSelf?action=help>Help</a>"
   . " | <a href=$phpSelf?action=logout>Log Out</a>"
   . "</div>";
   print getErrorMessage();
@@ -84,6 +86,7 @@ switch ($action) {
     break;
   default:
     doScriptSwitch($_POST, $_GET);
+    doTimeSheetSwitch($_POST, $_GET);
     // Add Authentification
     break;
 }
@@ -151,20 +154,20 @@ function processUpdateProp($hash) {
   } else {
     $searchName=$hash['deviceName'];
 #    printf("SELECT * FROM $table1 WHERE device_name LIKE '$searchNameSELECT * FROM $table1 WHERE device_name LIKE '$searchName''");
-    $result=doQuery("SELECT * FROM $table1 WHERE device_serial_number = '$deviceSerialNumber'");
+    $result=doQuery("deviceinventory", "SELECT * FROM $table1 WHERE device_serial_number = '$deviceSerialNumber'");
    
     if ($row = mysqli_fetch_assoc($result)) {
       #printf("UPDATE $table1 SET Properties='%s' WHERE device_name='%s'", $hash['deviceProperties'],$hash['deviceName']) . '<br>';
-      doQuery(sprintf("UPDATE $table1 SET Properties='%s', device_name='%s' WHERE device_serial_number='%s'", $hash['deviceProperties'], $hash['deviceName'], $deviceSerialNumber));
+      doQuery("deviceinventory", sprintf("UPDATE $table1 SET Properties='%s', device_name='%s' WHERE device_serial_number='%s'", $hash['deviceProperties'], $hash['deviceName'], $deviceSerialNumber));
       print "<br><br>Information updated in the database successfully.";
     } else if (!$row = mysqli_fetch_assoc($result)) {
       #printf("INSERT INTO device (device_name, Properties) VALUES ('%s', '%s')", $hash['deviceName'], $hash['deviceProperties']);
-      doQuery(sprintf("INSERT INTO device (device_name, Properties, device_serial_number) VALUES ('%s', '%s', '%s')", $hash['deviceName'], $hash['deviceProperties'], $deviceSerialNumber));
+      doQuery("deviceinventory", sprintf("INSERT INTO device (device_name, Properties, device_serial_number) VALUES ('%s', '%s', '%s')", $hash['deviceName'], $hash['deviceProperties'], $deviceSerialNumber));
       print "<br><br>Information inserted into the database successfully.";
     }
     # TODO: Maybe not have this separate?
     if (isset($deviceModelId) && isset($deviceCarrierId)) {
-      doQuery(sprintf("UPDATE $table1 SET model_id='%s', carrier_id='%s' WHERE device_serial_number='%s'", $deviceModelId, $deviceCarrierId, $deviceSerialNumber));
+      doQuery("deviceinventory", sprintf("UPDATE $table1 SET model_id='%s', carrier_id='%s' WHERE device_serial_number='%s'", $deviceModelId, $deviceCarrierId, $deviceSerialNumber));
     }
   } 
 }
@@ -172,34 +175,33 @@ function processUpdateProp($hash) {
 function getModelId($modelName) {
   if (isset($modelName)) {
     $query = "SELECT * FROM model WHERE model_name='$modelName'";
-    $result = doQuery($query);
+    $result = doQuery("deviceinventory", $query);
 
     if ($row = mysqli_fetch_assoc($result)) {
       return $row['model_id'];
     }
 
-    return doQuery(sprintf("INSERT INTO model (model_name) VALUES ('%s')", $modelName));
+    return doQuery("deviceinventory", sprintf("INSERT INTO model (model_name) VALUES ('%s')", $modelName));
   }
 }
 
 function getCarrierId($carrierName) {
   if (isset($carrierName)) {
     $query = "SELECT * FROM carrier WHERE carrier_name='$carrierName'";
-    $result = doQuery($query);
+    $result = doQuery("deviceinventory", $query);
 
     if ($row = mysqli_fetch_assoc($result)) {
       return $row['carrier_id'];
     }
 
-    return doQuery(sprintf("INSERT INTO carrier (carrier_name) VALUES ('%s')", $carrierName));
+    return doQuery("deviceinventory", sprintf("INSERT INTO carrier (carrier_name) VALUES ('%s')", $carrierName));
   }
 }
 
 function showDevices() {
   global $phpSelf;
-  $query = "SELECT * FROM device LEFT JOIN carrier USING (carrier_id)"
-    . " LEFT JOIN model USING (model_id)";
-  $result = doQuery($query);
+  $query = "SELECT * FROM device LEFT JOIN carrier USING (carrier_id) LEFT JOIN model USING (model_id)";
+  $result = doQuery("deviceinventory", $query);
   $html = "<center><table cellspacing='1' class='device'>"
     . sprintf("<tr><th class='tl'>Name</th><th>Serial Number</th><th>Model</th><th>Desc</th><th>Carrier</th><th>Location</th><th class='tr'>Action</th></tr>");
   $action = "";
@@ -235,7 +237,7 @@ function showDevices() {
 
 function showAccounts() {
   global $phpSelf;
-  $result = doQuery("SELECT * FROM account LEFT JOIN accounttype USING (type_id)");
+  $result = doQuery("deviceinventory", "SELECT * FROM account LEFT JOIN accounttype USING (type_id)");
   $html = "<center><table cellspacing='1' class='account'>"
     . sprintf("<tr><th class='tl'>Account</th><th>Type</th><th>Password</th><th>Location</th><th class='tr'>Action</th></tr>");
   $action = "";
@@ -290,36 +292,17 @@ function addAccount() {
 }
 
 function processDevice($hash) {
-  doQuery(sprintf("INSERT INTO device (device_name, carrier_id) VALUES ('%s', '%s')", $hash['device_name'], $hash['carrier_id']));
+  doQuery("deviceinventory", sprintf("INSERT INTO device (device_name, carrier_id) VALUES ('%s', '%s')", $hash['device_name'], $hash['carrier_id']));
   gotoHome();
 }
 
 function processAccount($hash) {
-  doQuery(sprintf("INSERT INTO account (account_name, password, type_id) VALUES ('%s', '%s', '%s')", $hash['account_name'], $hash['account_password'], $hash['type_id']));
+  doQuery("deviceinventory", sprintf("INSERT INTO account (account_name, password, type_id) VALUES ('%s', '%s', '%s')", $hash['account_name'], $hash['account_password'], $hash['type_id']));
   gotoAccountPage();
 }
 
 function editDevice() {
 
-}
-
-function doQuery($query) {
-  global $dbHost, $dbUser, $dbPass;
-
-  $mysqli = new mysqli($dbHost, $dbUser, $dbPass, 'deviceinventory');
-
-  if ($mysqli->connect_errno) {
-    die ("Cannot Connect \n");
-  }
-
-  if (!($result = $mysqli->query($query))) {
-    die ("Cannot Query \n ");
-  }
-
-  $result = ($mysqli->insert_id == 0)?$result:$mysqli->insert_id;
-  $mysqli->close();
-
-  return $result;
 }
 
 function createUserSelect() {
@@ -337,11 +320,11 @@ function createUserSelect() {
 }
 
 function createCarrierSelect() {
-  return createSelect("carrier_id", "SELECT carrier_id, carrier_name FROM carrier ORDER BY carrier_name");
+  return createSelect("deviceinventory", "carrier_id", "SELECT carrier_id, carrier_name FROM carrier ORDER BY carrier_name");
 }
 
-function createSelect($name, $query) {
-  $result = doQuery($query);
+function createSelect($schema, $name, $query) {
+  $result = doQuery($schema, $query);
 
   $html = "<select name='$name'>";
   while ($row = mysqli_fetch_array($result)) {
@@ -353,7 +336,7 @@ function createSelect($name, $query) {
 }
 
 function createAccountTypeSelect() {
-  return createSelect("type_id", "SELECT type_id, type_name FROM accounttype ORDER BY type_name");
+  return createSelect("deviceinventory", "type_id", "SELECT type_id, type_name FROM accounttype ORDER BY type_name");
 }
 
 function processCheckOut($hash) {
@@ -368,7 +351,7 @@ function processCheckIn($hash) {
 }
 
 function changeDeviceLocation($device_id, $device_location) {
-  doQuery(sprintf("UPDATE device SET device_location=%s WHERE device_id='%s'", $device_location, $device_id));
+  doQuery("deviceinventory", sprintf("UPDATE device SET device_location=%s WHERE device_id='%s'", $device_location, $device_id));
 }
 
 function processCheckOutAccount($hash) {
@@ -383,7 +366,7 @@ function processCheckInAccount($hash) {
 }
 
 function changeAccountLocation($account_id, $account_location) {
-  doQuery(sprintf("UPDATE account SET account_location=%s WHERE account_id='%s'", $account_location, $account_id));
+  doQuery("deviceinventory", sprintf("UPDATE account SET account_location=%s WHERE account_id='%s'", $account_location, $account_id));
 }
 
 function doGraph($get) {
