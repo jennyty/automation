@@ -8,6 +8,8 @@ function doTimeSheetSwitch($post, $get) {
     case 'processtimesheet':
       processTimeSheet($post);
       break;
+    case 'showtimesheetreport':
+      showTimeSheetReport();
   }
 }
 
@@ -21,7 +23,7 @@ function showTimeSheet($get) {
   if (!isset($shift)) {
     $shift = 0;
   } 
-  $lastSunday = strtotime('last Sunday') + (7*24*60*60*$shift);
+  #$lastSunday = strtotime('last Sunday') + (7*24*60*60*$shift);
   $week = array("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat");
   $html = "<form  method='POST' action='$phpSelf?action=processtimesheet'>"
     . "<table cellspacing='0' style='padding:2px'>"
@@ -33,7 +35,8 @@ function showTimeSheet($get) {
 
   # Date header
   for ($lp=0;$lp < 7;$lp++) {
-    $day   = date("m/d",$lastSunday+(24*60*60*$lp));
+    #$day   = date("m/d",$lastSunday+(24*60*60*$lp));
+    $day   = date("m/d",getStamp($lp, $shift));
     $today = date("m/d",strtotime('today'));
     $html .= "<td style='color:" . (($day == $today)?"red":"black") . "'>{$week[$lp]} ({$day})</td>";
   }
@@ -54,6 +57,7 @@ function showTimeSheet($get) {
   $html .= "</table>";
   $html .= "<input type='hidden' name='shift' value='$shift' />";
   $html .= "</form>";
+  $html .= "<a href='$phpSelf?action=showtimesheetreport'>Report</a>";
   print $html;
 }
 
@@ -116,6 +120,19 @@ function processTimeSheet($post) {
 
 function getStamp($dayOfWeek, $shift) {
   return strtotime('last Sunday') + (7*24*60*60*$shift) + (24*60*60*$dayOfWeek);  
+  #return strtotime('Sunday this week') + (7*24*60*60*$shift) + (24*60*60*$dayOfWeek);  
+}
+
+function showTimeSheetReport() {
+  $result = doQuery("dashboard","SELECT * FROM time JOIN project USING (project_id)");
+  $html = "<h3>Time Report</h3>";
+  $html .= "<table style='text-align:center;width:75%'>";
+  $html .= "<tr><th>Date</th><th>User</th><th>Project</th><th>Time</th></tr>";
+  while ($row = mysqli_fetch_assoc($result)) {
+    $html .= sprintf("<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>",date("Y/m/d", $row['time_stamp']),getUserNameById($row['user_id']),$row['project_name'],$row['time_value']);
+  }
+  $html .= "<table>";
+  print $html;
 }
 
 ?>
