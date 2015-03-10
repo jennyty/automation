@@ -24,11 +24,12 @@ if (isset($_SESSION['user'])) {
 
 ### Display buttons at the top ###
 print "<div style='width:100%;text-align:center;background-color:orange'>"
-  . "<a href=$phpSelf?action=showdevices>Devices</a>"
-  . " | <a href=$phpSelf?action=showscripts>Scripts</a>"
-  . " | <a href=$phpSelf?action=graph&testRunId=0>Graph</a>"
-  . " | <a href=$phpSelf?action=updateproperties>Update Properties</a>"
+  . "<a href=$phpSelf?action=showhome>Home</a>"
+  . " | <a href=$phpSelf?action=showdevices>Devices</a>"
   . " | <a href=$phpSelf?action=showaccounts>Test Accounts</a>"
+  . " | <a href=$phpSelf?action=showscripts>Scripts</a>"
+#  . " | <a href=$phpSelf?action=graph&testRunId=0>Graph</a>"
+#  . " | <a href=$phpSelf?action=updateproperties>Update Properties</a>"
   . " | <a href=$phpSelf?action=showtimesheet>Time Sheet</a>"
   . " | <a href=$phpSelf?action=help>Help</a>"
   . " | <a href=$phpSelf?action=logout>Log Out</a>"
@@ -39,6 +40,9 @@ print "<div style='width:100%;text-align:center;background-color:orange'>"
 }
 
 switch ($action) {
+  case 'showhome':
+    showHome();
+    break;
   case 'showdevices':
     showDevices();
     break;
@@ -104,7 +108,7 @@ function clearErrorMessage() {
 }
 
 function gotoHome() {
-  header("Location: $phpSelf?action=showdevices");
+  header("Location: $phpSelf?action=showhome");
   exit;
 }
 
@@ -198,6 +202,10 @@ function getCarrierId($carrierName) {
   }
 }
 
+function showHome() {
+  print "<iframe src='home.php' width='95%' height='100%' seamless frameborder='0'></iframe><br />";
+}
+
 function showDevices() {
   global $phpSelf;
   $query = "SELECT * FROM device LEFT JOIN carrier USING (carrier_id) LEFT JOIN model USING (model_id)";
@@ -228,6 +236,7 @@ function showDevices() {
   }
   $html .= "</table></center>";
   #$html .= "<a href='$phpSelf?action=adddevice'>Add Device</a>";
+  $html .= "<a href=$phpSelf?action=updateproperties>Add Device</a>";
   print $html;
   //print_r(doCredentials('automation@automation.com', 'automation'));
 //  print_r(getUsers());

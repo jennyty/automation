@@ -182,7 +182,7 @@ class Result
       array_push($data, $row);
     }
     
-    return json_encode($data) . "<br />$query";
+    return json_encode($data);
   }
 }
 

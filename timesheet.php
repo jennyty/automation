@@ -53,7 +53,9 @@ function showTimeSheet($get) {
     $html .= "<td></td></tr>";
   }
 
-  $html .= "<tr><td colspan='9' style='text-align:center'><hr /><input type='button' value='Check'></input><input type='submit' value='submit'></input></td></tr>";
+  $html .= "<tr><td colspan='9' style='text-align:center'><hr />";
+  #$html .= "<input type='button' value='Check'></input>";
+  $html .= "<input type='submit' value='submit'></input></td></tr>";
   $html .= "</table>";
   $html .= "<input type='hidden' name='shift' value='$shift' />";
   $html .= "</form>";
@@ -131,7 +133,7 @@ function showTimeSheetReport() {
   while ($row = mysqli_fetch_assoc($result)) {
     $html .= sprintf("<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>",date("Y/m/d", $row['time_stamp']),getUserNameById($row['user_id']),$row['project_name'],$row['time_value']);
   }
-  $html .= "<table>";
+  $html .= "</table>";
   print $html;
 }
 
