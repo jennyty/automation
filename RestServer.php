@@ -30,7 +30,11 @@
 					{
 						$pArray[strtolower($param->getName())] = null;
 						$paramStr .= $param->getName();
-
+	
+						if ($param->isDefaultValueAvailable() && !isset($rArray[$param->getName()])) {
+							$rArray[$param->getName()] = $param->getDefaultValue();
+						}
+	
 						if ($i != $pCount-1) #if a parameter is missing 
 						{
 							$paramStr .= ", ";
@@ -38,7 +42,7 @@
 						
 						$i++;
 					}
-
+	
 					foreach ($pArray as $key => $val)
 					{
 						$pArray[strtolower($key)] = $rArray[strtolower($key)];
