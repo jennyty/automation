@@ -111,8 +111,10 @@ function processTimeSheet($post) {
     for($lp=0 ; $lp < 7 ; $lp++) {
       $time = $post['time'][$lp + ($cnt * 7)];
       if (isset($time) && $time != "" && $id != "") {
-        $query = sprintf("INSERT INTO time (time_stamp, user_id, project_id, time_value) VALUES ('%s','%s','%s','%s')", getStamp($lp, $shift), $_SESSION['user']['id'], $id, $time);
-        doQuery("dashboard", $query);
+        if ($time > 0 && $time <= 24 && is_numeric($time)) {
+          $query = sprintf("INSERT INTO time (time_stamp, user_id, project_id, time_value) VALUES ('%s','%s','%s','%s')", getStamp($lp, $shift), $_SESSION['user']['id'], $id, $time);
+          doQuery("dashboard", $query);
+        }
       }
     }
     $cnt++;
