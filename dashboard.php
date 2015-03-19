@@ -44,7 +44,7 @@ switch ($action) {
     showHome();
     break;
   case 'showdevices':
-    showDevices();
+    showDevices($_GET);
     break;
   case 'showaccounts':
     showAccounts();
@@ -109,6 +109,11 @@ function clearErrorMessage() {
 
 function gotoHome() {
   header("Location: $phpSelf?action=showhome");
+  exit;
+}
+
+function gotoDevices() {
+  header("Location: $phpSelf?action=showdevices");
   exit;
 }
 
@@ -206,12 +211,22 @@ function showHome() {
   print "<iframe src='home.php' width='95%' height='100%' seamless frameborder='0'></iframe><br />";
 }
 
-function showDevices() {
+function showDevices($hash) {
   global $phpSelf;
-  $query = "SELECT * FROM device LEFT JOIN carrier USING (carrier_id) LEFT JOIN model USING (model_id)";
+  $orderBy = "";
+  if (isset($hash['sort'])) {
+    $orderBy = " ORDER BY " . $hash['sort'];
+  }
+  $query = "SELECT * FROM device LEFT JOIN carrier USING (carrier_id) LEFT JOIN model USING (model_id)" . $orderBy;
   $result = doQuery("deviceinventory", $query);
+  $thisUrl = "$phpSelf?action=showdevices";
   $html = "<center><table cellspacing='1' class='device'>"
-    . sprintf("<tr><th class='tl'>Name</th><th>Serial Number</th><th>Model</th><th>Desc</th><th>Carrier</th><th>Location</th><th class='tr'>Action</th></tr>");
+    . sprintf("<tr><th class='tl'><a href='$thisUrl&sort=device_name'>Name</a></th>"
+      . "<th><a href='$thisUrl&sort=device_serial_number'>Serial Number</a></th>"
+      . "<th><a href='$thisUrl&sort=model_name'>Model</a></th>"
+      . "<th><a href='$thisUrl&sort=model_desc'>Desc</a></th>"
+      . "<th><a href='$thisUrl&sort=carrier_name'>Carrier</a></th>"
+      . "<th>Location</th><th class='tr'>Action</th></tr>");
   $action = "";
   $toggle = 0;
   while ($row = mysqli_fetch_array($result)) {
@@ -302,7 +317,7 @@ function addAccount() {
 
 function processDevice($hash) {
   doQuery("deviceinventory", sprintf("INSERT INTO device (device_name, carrier_id) VALUES ('%s', '%s')", $hash['device_name'], $hash['carrier_id']));
-  gotoHome();
+  gotoDevices();
 }
 
 function processAccount($hash) {
@@ -354,12 +369,12 @@ function createAccountTypeSelect() {
 function processCheckOut($hash) {
   // TODO: Check if Available
   changeDeviceLocation($hash['device_id'], $_SESSION['user']['id']);
-  gotoHome();
+  gotoDevices();
 }
 
 function processCheckIn($hash) {
   changeDeviceLocation($hash['device_id'], 'NULL');
-  gotoHome();
+  gotoDevices();
 }
 
 function changeDeviceLocation($device_id, $device_location) {
