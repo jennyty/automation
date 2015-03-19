@@ -14,6 +14,12 @@ table.device {
   background-color: white;
 }
 
+table.account {
+  width:75%;
+  text-align:center;
+  background-color: white;
+}
+
 th {
   background-color: steelblue;
 }

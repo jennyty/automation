@@ -214,9 +214,16 @@ function showHome() {
 function showDevices($hash) {
   global $phpSelf;
   $orderBy = "";
+
   if (isset($hash['sort'])) {
-    $orderBy = " ORDER BY " . $hash['sort'];
+    $_SESSION['device_sort'] = $hash['sort'];
   }
+
+  # Saving as a session variable so sort doesn't need to propergate through checkin/checkout
+  if (isset($_SESSION['device_sort'])) {
+    $orderBy = " ORDER BY " . $_SESSION['device_sort'];
+  }
+
   $query = "SELECT * FROM device LEFT JOIN carrier USING (carrier_id) LEFT JOIN model USING (model_id)" . $orderBy;
   $result = doQuery("deviceinventory", $query);
   $thisUrl = "$phpSelf?action=showdevices";
@@ -261,7 +268,7 @@ function showDevices($hash) {
 
 function showAccounts() {
   global $phpSelf;
-  $result = doQuery("deviceinventory", "SELECT * FROM account LEFT JOIN accounttype USING (type_id)");
+  $result = doQuery("deviceinventory", "SELECT * FROM account LEFT JOIN accounttype USING (type_id) ORDER BY type_name");
   $html = "<center><table cellspacing='1' class='account'>"
     . sprintf("<tr><th class='tl'>Account</th><th>Type</th><th>Password</th><th>Location</th><th class='tr'>Action</th></tr>");
   $action = "";
