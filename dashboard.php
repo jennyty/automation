@@ -268,7 +268,7 @@ function showDevices($hash) {
 
 function showAccounts() {
   global $phpSelf;
-  $result = doQuery("deviceinventory", "SELECT * FROM account LEFT JOIN accounttype USING (type_id) ORDER BY type_name");
+  $result = doQuery("deviceinventory", "SELECT * FROM account LEFT JOIN accounttype USING (type_id) ORDER BY type_name, account_id");
   $html = "<center><table cellspacing='1' class='account'>"
     . sprintf("<tr><th class='tl'>Account</th><th>Type</th><th>Password</th><th>Location</th><th class='tr'>Action</th></tr>");
   $action = "";
