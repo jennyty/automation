@@ -64,7 +64,6 @@ class Result
    }catch (Exception $e) {
      echo "Error: " ,$e-> getMessage();
    }
-   mysql_close(($conn));
   }
 
 
@@ -78,7 +77,6 @@ class Result
    }catch (Exception $e) {
      echo "Error: " ,$e-> getMessage();
    }
-   mysql_close(($conn));
   }
 
 
